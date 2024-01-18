@@ -1,0 +1,7 @@
+utm
+torch
+geopy
+spectral
+rasterio
+matplotlib
+opencv-python==4.8.0.74
