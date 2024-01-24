@@ -9,10 +9,11 @@ import spectral.io.envi as envi
 
 from geopy.distance import geodesic
 from matplotlib import pyplot as plt
+from matplotlib.patches import Rectangle
 
 
 def main():
-    dest_path = r'/assets/raw_data/Julis_ortho_X160_Y856_x_655360_y_3510271.tif'
+    dest_path = r'/home/kobi/PycharmProjects/SuperPointPretrainedNetwork/assets/raw_data/Julis_ortho_X160_Y856_x_655360_y_3510271.tif'
     dest_file = rasterio.open(dest_path)
     dest_image = dest_file.read().transpose(1, 2, 0)
 
@@ -20,8 +21,9 @@ def main():
     # cv2.waitKey(-1)
 
     # cv2.imwrite('assets/data/target.png', dest_image[6500:7000, 6700:7000])
+    cv2.imwrite('assets/data/target.png', dest_image[5000:8000, 5000:8000])
 
-    source_envi_path = r'/assets/raw_data/raw_60000_or'
+    source_envi_path = r'/home/kobi/PycharmProjects/SuperPointPretrainedNetwork/assets/raw_data/raw_60000_or'
     source_path = f'{source_envi_path}.hdr'
     source_file = spectral.io.envi.open(source_path)
     if source_file.nbands == 3:
@@ -45,24 +47,36 @@ def main():
     # plt.show()
     plt.imshow(norm_resized_source_image[..., 0], cmap='gray')
     plt.show()
-    cv2.imwrite('assets/data/source.png', norm_resized_source_image)
+    plt.imsave('assets/data/source.png', norm_resized_source_image)
 
     # print(dest_raster.xy(0,0))
 
     source_raster = rasterio.open(source_envi_path)
 
-    top_left = (31.69388, 34.66791)
-    bottom_right = (31.69313, 34.66818)
+
+    # top_left = (31.69388, 34.66791)
+    # bottom_right = (31.69313, 34.66818)
+    top_left = (31.693, 34.669)
+    bottom_right = (31.691, 34.667)
+
     topleft = utm.from_latlon(*top_left)[:2]
     bottomright = utm.from_latlon(*bottom_right)[:2]
 
     x1, y1 = dest_file.index(*topleft)
     x2, y2 = dest_file.index(*bottomright)
+    x1, x2 = min(x1, x2), max(x1, x2)
+    y1, y2 = min(y1, y2), max(y1, y2)
 
     plt.imshow(dest_image[x1: x2, y1: y2])
     plt.show()
 
-    cv2.imwrite('assets/data/cropped_dest.png', dest_image[x1: x2, y1: y2])
+    plt.imsave('assets/data/cropped_dest.png', dest_image[x1: x2, y1: y2])
+
+    fig, ax = plt.subplots()
+    rect = Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='r', facecolor='none')
+    ax.imshow(dest_image)
+    ax.add_patch(rect)
+    plt.savefig('assets/data/marked_cropped_dest.png')
 
 
 def normalize_image(image: np.ndarray) -> np.ndarray:
